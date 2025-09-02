@@ -1,247 +1,225 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Agendamento de Serviços de T.I.</title>
-<style>
-  /* Reset and base */
-  * {
-    box-sizing: border-box;
+import React, { useState, useRef } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import confetti from "canvas-confetti";
+
+function rolarDados(qtd, faces) {
+  const dados = [];
+  for (let i = 0; i < qtd; i++) {
+    dados.push(Math.floor(Math.random() * faces) + 1);
   }
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: #f7f9fc;
-    color: #333;
-  }
-  header {
-    background: #0078d7;
-    color: white;
-    padding: 2rem 1rem;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  header h1 {
-    margin: 0 0 0.5rem 0;
-    font-weight: 700;
-    font-size: 2.5rem;
-  }
-  header p {
-    font-size: 1.125rem;
-    font-weight: 300;
-  }
-  main {
-    max-width: 720px;
-    margin: 2rem auto 4rem auto;
-    background: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-  }
-  h2 {
-    color: #0078d7;
-    margin-top: 0;
-    font-weight: 600;
-    border-bottom: 2px solid #0078d7;
-    padding-bottom: 0.3rem;
-  }
-  ul.services-list {
-    list-style-type: none;
-    padding-left: 0;
-    margin-bottom: 2rem;
-  }
-  ul.services-list li {
-    background: #e1f0ff;
-    margin-bottom: 0.75rem;
-    padding: 0.8rem 1rem;
-    border-radius: 6px;
-    font-weight: 500;
-    color: #004a9e;
-    transition: transform 0.4s ease;
-  }
-  ul.services-list li.animate {
-    animation: bounce 0.6s ease;
-    background-color: #cce7ff;
-  }
-  @keyframes bounce {
-    0%   { transform: translateY(0); }
-    30%  { transform: translateY(-10px); }
-    50%  { transform: translateY(5px); }
-    70%  { transform: translateY(-7px); }
-    100% { transform: translateY(0); }
-  }
-  form {
-    display: flex;
-    flex-direction: column;
-  }
-  label {
-    margin-bottom: 0.25rem;
-    font-weight: 600;
-    color: #444;
-    margin-top: 1rem;
-  }
-  select, input[type="text"], input[type="email"], input[type="tel"], input[type="date"], input[type="time"] {
-    padding: 0.5rem;
-    border: 1.5px solid #ccc;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease;
-  }
-  select:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="date"]:focus, input[type="time"]:focus {
-    border-color: #0078d7;
-    outline: none;
-  }
-  button {
-    margin-top: 2rem;
-    background-color: #0078d7;
-    color: white;
-    padding: 0.75rem;
-    font-size: 1.125rem;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-  }
-  button:hover {
-    background-color: #005ea1;
-  }
-  .confirmation {
-    margin-top: 2rem;
-    background-color: #d4edda;
-    color: #155724;
-    border: 1.5px solid #c3e6cb;
-    border-radius: 6px;
-    padding: 1rem;
-    font-weight: 600;
-    display: none;
-  }
-  @media (max-width: 480px) {
-    body {
-      padding: 0 0.5rem;
+  return dados;
+}
+
+function media(valores) {
+  return valores.reduce((a, b) => a + b, 0) / valores.length;
+}
+
+export default function JogoEstatisticas() {
+  const [aposta, setAposta] = useState(3);
+  const [numDados, setNumDados] = useState(3);
+  const [faces, setFaces] = useState(6);
+  const [limiar, setLimiar] = useState(0.5);
+  const [resultado, setResultado] = useState(null);
+  const [pontuacao, setPontuacao] = useState(0);
+  const [round, setRound] = useState(1);
+  const [historico, setHistorico] = useState([]);
+  const [animando, setAnimando] = useState(false);
+
+  const audioRef = useRef({});
+
+  const tocarSom = (tipo) => {
+    if (audioRef.current[tipo]) {
+      audioRef.current[tipo].currentTime = 0;
+      audioRef.current[tipo].play();
     }
-    main {
-      padding: 1rem;
-      margin: 1rem auto 3rem auto;
-    }
-  }
-</style>
-</head>
-<body>
-<header>
-  <h1>TechPrime</h1>
-  <p>Segurança | Atendimento rápido e profissional</p>
-</header>
-<main>
-  <section>
-    <h2>Serviços Disponíveis</h2>
-    <ul class="services-list">
-      <li data-service="Instalação Windows/Office">Instalação e ativação do Windows e do Pacote Office</li>
-      <li data-service="Limpeza de hardware">Limpeza de hardware</li>
-      <li data-service="Limpeza de software">Limpeza de software</li>
-    </ul>
-  </section>
-  <section>
-    <h2>Agende seu horário</h2>
-    <form action="https://formspree.io/f/xnndyjra" method="POST" id="bookingForm" novalidate>
-      <label for="service">Selecione o serviço:</label>
-      <select id="service" name="service" required>
-        <option value="" disabled selected>-- Escolha um serviço --</option>
-        <option value="Instalação Windows/Office">Instalação Windows/Office</option>
-        <option value="Limpeza de hardware">Limpeza de hardware</option>
-        <option value="Limpeza de software">Limpeza de software</option>
-      </select>
+  };
 
-      <label for="date">Data do atendimento:</label>
-      <input type="date" id="date" name="date" required min="" />
+  const jogar = () => {
+    setAnimando(true);
+    setResultado(null);
+    tocarSom("rolar");
 
-      <label for="time">Hora do atendimento:</label>
-      <input type="time" id="time" name="time" required min="09:00" max="18:00" />
-
-      <label for="name">Seu nome completo:</label>
-      <input type="text" id="name" name="name" required minlength="3" placeholder="Nome completo" />
-
-      <label for="email">E-mail para contato:</label>
-      <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com" />
-
-      <label for="phone">Telefone (opcional):</label>
-      <input type="tel" id="phone" name="phone" placeholder="(xx) xxxx-xxxx ou (xx) xxxxx-xxxx" pattern="[\d\s\-\+$$]+" />
-
-      <button type="submit">Agendar</button>
-    </form> 
-    <div class="confirmation" id="confirmationMessage"></div>
-  </section>
-</main>
-<script>
-  // Set min date for the date input to today
-  const dateInput = document.getElementById('date');
-  const today = new Date().toISOString().split('T')[0];
-  dateInput.setAttribute('min', today);
-
-  const form = document.getElementById('bookingForm');
-  const confirmation = document.getElementById('confirmationMessage');
-  const servicesListItems = document.querySelectorAll('ul.services-list li');
-  const serviceSelect = document.getElementById('service');
-
-  // Remove animation class helper
-  function removeAnimationClasses() {
-    servicesListItems.forEach(li => {
-      li.classList.remove('animate');
-    });
-  }
-
-  // Listen for service selection changes and animate corresponding list item
-  serviceSelect.addEventListener('change', () => {
-    removeAnimationClasses();
-    const selectedValue = serviceSelect.value;
-    servicesListItems.forEach(li => {
-      if (li.getAttribute('data-service') === selectedValue) {
-        // To restart animation if already applied, remove then add with timeout
-        li.classList.remove('animate');
-        void li.offsetWidth; // trigger reflow to restart animation
-        li.classList.add('animate');
+    setTimeout(() => {
+      const dados = rolarDados(numDados, faces);
+      const m = media(dados);
+      const diff = Math.abs(m - aposta);
+      const acertou = diff < limiar;
+      if (acertou) {
+        setPontuacao((p) => p + 1);
+        tocarSom("vitoria");
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+      } else {
+        tocarSom("derrota");
       }
-    });
-  });
+      setRound((r) => r + 1);
 
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
+      const r = { dados, media: m, aposta, diff, limiar, acertou };
+      setResultado(r);
+      setHistorico((h) => [{ ...r, round }, ...h]);
+      setAnimando(false);
+    }, 1500);
+  };
 
-    if (!form.checkValidity()) {
-      form.reportValidity();
-      return;
+  const simular = () => {
+    let wins = 0;
+    for (let i = 0; i < 1000; i++) {
+      const dados = rolarDados(numDados, faces);
+      const m = media(dados);
+      if (Math.abs(m - aposta) < limiar) wins++;
     }
+    alert(`Taxa de acerto estimada: ${(wins / 10).toFixed(1)}%`);
+  };
 
-    // Validate time within working hours (09:00 - 18:00)
-    const time = document.getElementById('time').value;
-    if (time < '09:00' || time > '18:00') {
-      alert('Por favor, selecione um horário entre 09:00 e 18:00.');
-      return;
-    }
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-200 p-6 flex flex-col items-center">
+      <audio ref={(el) => (audioRef.current["rolar"] = el)} src="/sounds/roll.mp3" preload="auto" />
+      <audio ref={(el) => (audioRef.current["vitoria"] = el)} src="/sounds/win.mp3" preload="auto" />
+      <audio ref={(el) => (audioRef.current["derrota"] = el)} src="/sounds/lose.mp3" preload="auto" />
 
-    // Get form data
-    const service = form.service.value;
-    const date = form.date.value;
-    const timeSelected = time;
-    const name = form.name.value.trim();
-    const email = form.email.value.trim();
-    const phone = form.phone.value.trim();
+      <motion.h1
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="text-3xl font-bold mb-6"
+      >
+        🎲 Jogo de Estatísticas com Dados
+      </motion.h1>
 
-    // Show a confirmation message
-    confirmation.style.display = 'block';
-    confirmation.innerHTML = `
-      Obrigado, <strong>${name}</strong>!<br/>
-      Seu agendamento para <strong>${service}</strong> está marcado para <strong>${date}</strong> às <strong>${timeSelected}</strong>.<br/>
-      Entraremos em contato pelo e-mail <strong>${email}</strong> para confirmar o horário.<br/>
-      ${phone ? 'Telefone: ' + phone + '<br/>' : ''}
-      Até breve!
-    `;
+      <Card className="w-full max-w-xl mb-6">
+        <CardContent className="grid gap-4 p-4">
+          <label>
+            Aposta:
+            <input
+              type="number"
+              step="0.1"
+              value={aposta}
+              onChange={(e) => setAposta(parseFloat(e.target.value))}
+              className="border rounded p-1 w-20 ml-2"
+            />
+          </label>
+          <label>
+            Número de dados:
+            <input
+              type="number"
+              value={numDados}
+              onChange={(e) => setNumDados(parseInt(e.target.value))}
+              className="border rounded p-1 w-20 ml-2"
+            />
+          </label>
+          <label>
+            Faces dos dados:
+            <input
+              type="number"
+              value={faces}
+              onChange={(e) => setFaces(parseInt(e.target.value))}
+              className="border rounded p-1 w-20 ml-2"
+            />
+          </label>
+          <label>
+            Limiar:
+            <input
+              type="number"
+              step="0.1"
+              value={limiar}
+              onChange={(e) => setLimiar(parseFloat(e.target.value))}
+              className="border rounded p-1 w-20 ml-2"
+            />
+          </label>
 
-    // Reset form
-    form.reset();
-    removeAnimationClasses();
-  });
-</script>
-</body>
-</html>
+          <div className="flex gap-4 mt-4">
+            <Button onClick={jogar} disabled={animando}>
+              {animando ? "Rolando..." : "Rolar Dados"}
+            </Button>
+            <Button variant="secondary" onClick={simular}>
+              Simular 1000 rodadas
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {animando && (
+        <div className="flex gap-4 mb-6">
+          {[...Array(numDados)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center text-2xl font-bold"
+              animate={{ rotate: [0, 360] }}
+              transition={{ repeat: Infinity, duration: 0.6, ease: "linear" }}
+            >
+              🎲
+            </motion.div>
+          ))}
+        </div>
+      )}
+
+      {resultado && !animando && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-xl"
+        >
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <h2 className="text-xl font-semibold mb-2">Resultado da Rodada {round - 1}</h2>
+              <p>Aposta: {resultado.aposta.toFixed(2)}</p>
+              <div className="flex gap-2 my-2">
+                {resultado.dados.map((d, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.3, delay: i * 0.2 }}
+                    className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center text-xl font-bold"
+                  >
+                    {d}
+                  </motion.div>
+                ))}
+              </div>
+              <p>Média: {resultado.media.toFixed(2)}</p>
+              <p>
+                Diferença: {resultado.diff.toFixed(2)} (limiar {resultado.limiar})
+              </p>
+              {resultado.acertou ? (
+                <p className="text-green-600 font-bold mt-2">✅ Você venceu!</p>
+              ) : (
+                <p className="text-red-600 font-bold mt-2">❌ Não foi dessa vez.</p>
+              )}
+            </CardContent>
+          </Card>
+        </motion.div>
+      )}
+
+      <Card className="w-full max-w-xl">
+        <CardContent className="p-4">
+          <h2 className="text-xl font-semibold mb-2">Pontuação</h2>
+          <p>Rodada atual: {round}</p>
+          <p>Pontuação: {pontuacao}</p>
+          <div className="w-full bg-gray-200 h-4 rounded mt-2">
+            <motion.div
+              className="bg-green-500 h-4 rounded"
+              initial={{ width: 0 }}
+              animate={{ width: `${(pontuacao / round) * 100}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full max-w-xl mt-6">
+        <CardContent className="p-4">
+          <h2 className="text-xl font-semibold mb-2">Histórico</h2>
+          {historico.length === 0 && <p>Nenhuma rodada ainda.</p>}
+          {historico.map((h, i) => (
+            <div key={i} className="border-b py-2">
+              <p>
+                <strong>Rodada {h.round}:</strong> Dados {h.dados.join(", ")},
+                média {h.media.toFixed(2)} → {h.acertou ? "✅" : "❌"}
+              </p>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
