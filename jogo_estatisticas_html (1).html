@@ -1,225 +1,288 @@
-import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import confetti from "canvas-confetti";
+Aqui está o código atualizado com a parte de **"Hora do atendimento"** removida, sem alterações adicionais em outros trechos:
 
-function rolarDados(qtd, faces) {
-  const dados = [];
-  for (let i = 0; i < qtd; i++) {
-    dados.push(Math.floor(Math.random() * faces) + 1);
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agendamento de Serviços de T.I.</title>
+<style>
+  * {
+    box-sizing: border-box;
   }
-  return dados;
-}
-
-function media(valores) {
-  return valores.reduce((a, b) => a + b, 0) / valores.length;
-}
-
-export default function JogoEstatisticas() {
-  const [aposta, setAposta] = useState(3);
-  const [numDados, setNumDados] = useState(3);
-  const [faces, setFaces] = useState(6);
-  const [limiar, setLimiar] = useState(0.5);
-  const [resultado, setResultado] = useState(null);
-  const [pontuacao, setPontuacao] = useState(0);
-  const [round, setRound] = useState(1);
-  const [historico, setHistorico] = useState([]);
-  const [animando, setAnimando] = useState(false);
-
-  const audioRef = useRef({});
-
-  const tocarSom = (tipo) => {
-    if (audioRef.current[tipo]) {
-      audioRef.current[tipo].currentTime = 0;
-      audioRef.current[tipo].play();
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f9fc;
+    color: #333;
+  }
+  header {
+    background: #0078d7;
+    color: white;
+    padding: 2rem 1rem;
+    text-align: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  header h1 {
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+    font-size: 2.5rem;
+  }
+  header p {
+    font-size: 1.125rem;
+    font-weight: 300;
+  }
+  main {
+    max-width: 900px;
+    margin: 2rem auto 4rem auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+  }
+  h2 {
+    color: #0078d7;
+    margin-top: 0;
+    font-weight: 600;
+    border-bottom: 2px solid #0078d7;
+    padding-bottom: 0.3rem;
+  }
+  ul.services-list {
+    list-style-type: none;
+    padding-left: 0;
+    margin-bottom: 2rem;
+  }
+  ul.services-list li {
+    background: #e1f0ff;
+    margin-bottom: 0.75rem;
+    padding: 0.8rem 1rem;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #004a9e;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+  }
+  ul.services-list li.selected {
+    background-color: #d0e7ff;
+    border: 1px solid #0078d7;
+    box-shadow: 0 0 6px rgba(0,120,215,0.2);
+  }
+  ul.services-list li i {
+    font-size: 1.2rem;
+    color: #0078d7;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  label {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    color: #444;
+    margin-top: 1rem;
+  }
+  select, input[type="text"], input[type="email"], input[type="tel"], input[type="date"], textarea {
+    padding: 0.75rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    width: 100%;
+  }
+  select:focus, input[type="text"]:focus, input[type="email"]:focus, input[type="tel"]:focus, input[type="date"]:focus, textarea:focus {
+    border-color: #0078d7;
+    outline: none;
+  }
+  button {
+    margin-top: 1.5rem;
+    background-color: #0078d7;
+    color: white;
+    padding: 1rem;
+    font-size: 1.125rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    position: relative;
+  }
+  button:hover {
+    background-color: #005ea1;
+  }
+  button.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 1.5rem;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #fff;
+    border-top: 2px solid transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    transform: translateY(-50%);
+  }
+  @keyframes spin {
+    0% { transform: translateY(-50%) rotate(0deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+  }
+  .confirmation {
+    margin-top: 2rem;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1.5px solid #c3e6cb;
+    border-radius: 6px;
+    padding: 1rem;
+    font-weight: 600;
+    display: none;
+  }
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 2rem;
     }
-  };
+    header p {
+      font-size: 1rem;
+    }
+    main {
+      padding: 1.5rem;
+      margin: 1rem auto;
+    }
+    h2 {
+      font-size: 1.5rem;
+    }
+    button {
+      font-size: 1rem;
+    }
+  }
+  @media (min-width: 769px) {
+    main {
+      padding: 3rem;
+      margin: 3rem auto;
+    }
+    h2 {
+      font-size: 2rem;
+    }
+    button {
+      font-size: 1.25rem;
+    }
+  }
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-papnk+blabla" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body>
+<header>
+  <h1>TechPrime</h1>
+  <p>Segurança | Atendimento rápido e profissional</p>
+</header>
+<main>
+  <section>
+    <h2>Serviços Disponíveis</h2>
+    <ul class="services-list">
+      <li data-service="Instalação Windows/Office"><i class="fa-solid fa-laptop-code"></i>Instalação e ativação do Windows e do Pacote Office</li>
+      <li data-service="Limpeza de hardware"><i class="fa-solid fa-screwdriver-wrench"></i>Limpeza de hardware</li>
+      <li data-service="Limpeza de software"><i class="fa-solid fa-broom"></i>Limpeza de software</li>
+    </ul>
+  </section>
+  <section>
+    <h2>Agende seu horário</h2>
+    <form id="bookingForm" action="https://usebasin.com/f/2103aa2d618c" method="POST" novalidate>
+      <label for="service">Selecione o serviço:</label>
+      <select id="service" name="service" required>
+        <option value="" disabled selected>-- Escolha um serviço --</option>
+        <option value="Instalação Windows/Office">Instalação Windows/Office</option>
+        <option value="Limpeza de hardware">Limpeza de hardware</option>
+        <option value="Limpeza de software">Limpeza de software</option>
+      </select>
 
-  const jogar = () => {
-    setAnimando(true);
-    setResultado(null);
-    tocarSom("rolar");
+      <label for="extra">Ou descreva o problema (opcional):</label>
+      <textarea id="extra" name="extra" placeholder="Descreva seu problema aqui, caso não esteja listado" rows="4"></textarea>
+
+      <label for="date">Data do atendimento:</label>
+      <input type="date" id="date" name="date" required min="" />
+
+      <label for="name">Seu nome completo:</label>
+      <input type="text" id="name" name="name" required minlength="3" placeholder="Nome completo" />
+
+      <label for="email">E-mail para contato:</label>
+      <input type="email" id="email" name="email" required placeholder="seuemail@exemplo.com" />
+
+      <label for="phone">Telefone (opcional):</label>
+      <input type="tel" id="phone" name="phone" placeholder="(xx) xxxx-xxxx ou (xx) xxxxx-xxxx" pattern="[\d\s\-\+\(\)]+" />
+
+      <button type="submit" id="submitBtn">Agendar</button>
+    </form>
+    <div class="confirmation" id="confirmationMessage"></div>
+  </section>
+</main>
+<script>
+  const dateInput = document.getElementById('date');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.setAttribute('min', today);
+
+  const form = document.getElementById('bookingForm');
+  const confirmation = document.getElementById('confirmationMessage');
+  const servicesListItems = document.querySelectorAll('ul.services-list li');
+  const serviceSelect = document.getElementById('service');
+  const submitBtn = document.getElementById('submitBtn');
+
+  function removeSelectedClasses() {
+    servicesListItems.forEach(li => li.classList.remove('selected'));
+  }
+
+  serviceSelect.addEventListener('change', () => {
+    removeSelectedClasses();
+    const selectedValue = serviceSelect.value;
+    servicesListItems.forEach(li => {
+      if (li.getAttribute('data-service') === selectedValue) {
+        li.classList.add('selected');
+      }
+    });
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return;
+    }
+
+    submitBtn.classList.add('loading');
+    submitBtn.disabled = true;
+
+    const service = form.service.value;
+    const date = form.date.value;
+    const name = form.name.value.trim();
+    const email = form.email.value.trim();
+    const phone = form.phone.value.trim();
+    const extra = form.extra.value.trim();
 
     setTimeout(() => {
-      const dados = rolarDados(numDados, faces);
-      const m = media(dados);
-      const diff = Math.abs(m - aposta);
-      const acertou = diff < limiar;
-      if (acertou) {
-        setPontuacao((p) => p + 1);
-        tocarSom("vitoria");
-        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-      } else {
-        tocarSom("derrota");
-      }
-      setRound((r) => r + 1);
+      confirmation.style.display = 'block';
+      confirmation.innerHTML = `
+        Obrigado, <strong>${name}</strong>!<br/>
+        Seu agendamento para <strong>${service || "serviço personalizado"}</strong> está marcado para <strong>${date}</strong>.<br/>
+        Entraremos em contato pelo e-mail <strong>${email}</strong> para confirmar o horário.<br/>
+        ${phone ? 'Telefone: ' + phone + '<br/>' : ''}
+        ${extra ? 'Descrição do problema: ' + extra + '<br/>' : ''}
+        Até breve!
+      `;
 
-      const r = { dados, media: m, aposta, diff, limiar, acertou };
-      setResultado(r);
-      setHistorico((h) => [{ ...r, round }, ...h]);
-      setAnimando(false);
-    }, 1500);
-  };
+      form.reset();
+      removeSelectedClasses();
+      submitBtn.classList.remove('loading');
+      submitBtn.disabled = false;
+    }, 1000);
+  });
+</script>
+</body>
+</html>
+```
 
-  const simular = () => {
-    let wins = 0;
-    for (let i = 0; i < 1000; i++) {
-      const dados = rolarDados(numDados, faces);
-      const m = media(dados);
-      if (Math.abs(m - aposta) < limiar) wins++;
-    }
-    alert(`Taxa de acerto estimada: ${(wins / 10).toFixed(1)}%`);
-  };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-200 p-6 flex flex-col items-center">
-      <audio ref={(el) => (audioRef.current["rolar"] = el)} src="/sounds/roll.mp3" preload="auto" />
-      <audio ref={(el) => (audioRef.current["vitoria"] = el)} src="/sounds/win.mp3" preload="auto" />
-      <audio ref={(el) => (audioRef.current["derrota"] = el)} src="/sounds/lose.mp3" preload="auto" />
-
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-3xl font-bold mb-6"
-      >
-        🎲 Jogo de Estatísticas com Dados
-      </motion.h1>
-
-      <Card className="w-full max-w-xl mb-6">
-        <CardContent className="grid gap-4 p-4">
-          <label>
-            Aposta:
-            <input
-              type="number"
-              step="0.1"
-              value={aposta}
-              onChange={(e) => setAposta(parseFloat(e.target.value))}
-              className="border rounded p-1 w-20 ml-2"
-            />
-          </label>
-          <label>
-            Número de dados:
-            <input
-              type="number"
-              value={numDados}
-              onChange={(e) => setNumDados(parseInt(e.target.value))}
-              className="border rounded p-1 w-20 ml-2"
-            />
-          </label>
-          <label>
-            Faces dos dados:
-            <input
-              type="number"
-              value={faces}
-              onChange={(e) => setFaces(parseInt(e.target.value))}
-              className="border rounded p-1 w-20 ml-2"
-            />
-          </label>
-          <label>
-            Limiar:
-            <input
-              type="number"
-              step="0.1"
-              value={limiar}
-              onChange={(e) => setLimiar(parseFloat(e.target.value))}
-              className="border rounded p-1 w-20 ml-2"
-            />
-          </label>
-
-          <div className="flex gap-4 mt-4">
-            <Button onClick={jogar} disabled={animando}>
-              {animando ? "Rolando..." : "Rolar Dados"}
-            </Button>
-            <Button variant="secondary" onClick={simular}>
-              Simular 1000 rodadas
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {animando && (
-        <div className="flex gap-4 mb-6">
-          {[...Array(numDados)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center text-2xl font-bold"
-              animate={{ rotate: [0, 360] }}
-              transition={{ repeat: Infinity, duration: 0.6, ease: "linear" }}
-            >
-              🎲
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {resultado && !animando && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-xl"
-        >
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <h2 className="text-xl font-semibold mb-2">Resultado da Rodada {round - 1}</h2>
-              <p>Aposta: {resultado.aposta.toFixed(2)}</p>
-              <div className="flex gap-2 my-2">
-                {resultado.dados.map((d, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ duration: 0.3, delay: i * 0.2 }}
-                    className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center text-xl font-bold"
-                  >
-                    {d}
-                  </motion.div>
-                ))}
-              </div>
-              <p>Média: {resultado.media.toFixed(2)}</p>
-              <p>
-                Diferença: {resultado.diff.toFixed(2)} (limiar {resultado.limiar})
-              </p>
-              {resultado.acertou ? (
-                <p className="text-green-600 font-bold mt-2">✅ Você venceu!</p>
-              ) : (
-                <p className="text-red-600 font-bold mt-2">❌ Não foi dessa vez.</p>
-              )}
-            </CardContent>
-          </Card>
-        </motion.div>
-      )}
-
-      <Card className="w-full max-w-xl">
-        <CardContent className="p-4">
-          <h2 className="text-xl font-semibold mb-2">Pontuação</h2>
-          <p>Rodada atual: {round}</p>
-          <p>Pontuação: {pontuacao}</p>
-          <div className="w-full bg-gray-200 h-4 rounded mt-2">
-            <motion.div
-              className="bg-green-500 h-4 rounded"
-              initial={{ width: 0 }}
-              animate={{ width: `${(pontuacao / round) * 100}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="w-full max-w-xl mt-6">
-        <CardContent className="p-4">
-          <h2 className="text-xl font-semibold mb-2">Histórico</h2>
-          {historico.length === 0 && <p>Nenhuma rodada ainda.</p>}
-          {historico.map((h, i) => (
-            <div key={i} className="border-b py-2">
-              <p>
-                <strong>Rodada {h.round}:</strong> Dados {h.dados.join(", ")},
-                média {h.media.toFixed(2)} → {h.acertou ? "✅" : "❌"}
-              </p>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
+Você quer que eu **mantenha o espaço do horário no futuro (caso precise reativar)** mas apenas escondido via CSS/JS, ou prefere realmente removê-lo do código como fiz aqui?
